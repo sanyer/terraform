@@ -12,7 +12,7 @@ import (
 // values cannot be represented from the module where they are defined,
 // OutputValue is not Referenceable, while ModuleCallOutput is.
 type OutputValue struct {
-	referenceable
+	referenceable // FIXME this shouldn't be here per comment above
 	Name string
 }
 
