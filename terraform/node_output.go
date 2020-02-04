@@ -57,11 +57,10 @@ func (n *NodePlannableOutput) ReferenceableAddrs() []addrs.Referenceable {
 		return nil
 	}
 
-	// Otherwise, we can reference the output via the address itself, or the
+	// Otherwise, we can reference the output via the
 	// module call
 	_, call := n.Module.Call()
-	// moduleCallOutput := addrs.ModuleCallOutput{Call: call, Name: n.Name()}
-	return []addrs.Referenceable{n.Addr, call}
+	return []addrs.Referenceable{call}
 }
 
 // RemovableIfNotTargeted
