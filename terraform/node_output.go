@@ -22,7 +22,7 @@ var (
 	_ RemovableIfNotTargeted = (*NodePlannableOutput)(nil)
 	_ GraphNodeReferenceable = (*NodePlannableOutput)(nil)
 	//_ GraphNodeEvalable          = (*NodePlannableOutput)(nil)
-	//_ GraphNodeReferencer        = (*NodePlannableOutput)(nil)
+	_ GraphNodeReferencer        = (*NodePlannableOutput)(nil)
 	_ GraphNodeDynamicExpandable = (*NodePlannableOutput)(nil)
 )
 
@@ -62,6 +62,11 @@ func (n *NodePlannableOutput) ReferenceableAddrs() []addrs.Referenceable {
 	// module call
 	_, call := n.Module.Call()
 	return []addrs.Referenceable{call}
+}
+
+// GraphNodeReferencer
+func (n *NodePlannableOutput) References() []*addrs.Reference {
+	return appendResourceDestroyReferences(referencesForOutput(n.Config))
 }
 
 // RemovableIfNotTargeted
