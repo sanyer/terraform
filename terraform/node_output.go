@@ -34,13 +34,14 @@ func (n *NodePlannableOutput) DynamicExpand(ctx EvalContext) (*Graph, error) {
 			Addr:   n.Addr.Absolute(module),
 			Config: n.Config,
 		}
+		// log.Printf("[TRACE] Expanding output: adding %s as %T", o.Addr.String(), o)
 		g.Add(o)
 	}
 	return &g, nil
 }
 
 func (n *NodePlannableOutput) Name() string {
-	return fmt.Sprintf("%s.%s", n.Module, n.Addr.Name)
+	return n.Addr.AbsString(n.Module)
 }
 
 // GraphNodeSubPath
@@ -124,7 +125,6 @@ func referenceOutsideForOutput(addr addrs.AbsOutputValue) (selfPath, referencePa
 	selfPath = addr.Module.Parent()
 
 	return // uses named return values
-
 }
 
 // GraphNodeReferenceOutside implementation
