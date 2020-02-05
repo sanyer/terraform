@@ -42,6 +42,10 @@ func (n *nodeExpandModule) Path() addrs.ModuleInstance {
 func (n *nodeExpandModule) References() []*addrs.Reference {
 	var refs []*addrs.Reference
 
+	if n.ModuleCall == nil {
+		return nil
+	}
+
 	// Expansion only uses the count and for_each expressions, so this
 	// particular graph node only refers to those.
 	// Individual variable values in the module call definition might also
