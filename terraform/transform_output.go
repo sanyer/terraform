@@ -46,6 +46,7 @@ func (t *OutputTransformer) transform(g *Graph, c *configs.Config) error {
 			Module: c.Path,
 			Config: o,
 		}
+		log.Printf("[TRACE] OutputTransformer: adding %s as %T", o.Name, node)
 		g.Add(node)
 	}
 
