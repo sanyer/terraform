@@ -64,6 +64,18 @@ func (n *NodePlannableOutput) ReferenceableAddrs() []addrs.Referenceable {
 	return []addrs.Referenceable{call}
 }
 
+// GraphNodeReferenceOutside implementation
+func (n *NodePlannableOutput) ReferenceOutside() (selfPath, referencePath addrs.Module) {
+	// Output values have their expressions resolved in the context of the
+	// module where they are defined.
+	referencePath = n.Module
+
+	// ...but they are referenced in the context of their calling module.
+	selfPath = referencePath.Parent()
+
+	return // uses named return values
+}
+
 // GraphNodeReferencer
 func (n *NodePlannableOutput) References() []*addrs.Reference {
 	return appendResourceDestroyReferences(referencesForOutput(n.Config))
@@ -121,19 +133,19 @@ func (n *NodeApplyableOutput) TargetDownstream(targetedDeps, untargetedDeps *dag
 	return true
 }
 
-func referenceOutsideForOutput(addr addrs.AbsOutputValue) (selfPath, referencePath addrs.ModuleInstance) {
+func referenceOutsideForOutput(addr addrs.AbsOutputValue) (selfPath, referencePath addrs.Module) {
 	// Output values have their expressions resolved in the context of the
 	// module where they are defined.
-	referencePath = addr.Module
+	referencePath = addr.Module.Module()
 
 	// ...but they are referenced in the context of their calling module.
-	selfPath = addr.Module.Parent()
+	selfPath = addr.Module.Parent().Module()
 
 	return // uses named return values
 }
 
 // GraphNodeReferenceOutside implementation
-func (n *NodeApplyableOutput) ReferenceOutside() (selfPath, referencePath addrs.ModuleInstance) {
+func (n *NodeApplyableOutput) ReferenceOutside() (selfPath, referencePath addrs.Module) {
 	return referenceOutsideForOutput(n.Addr)
 }
 

@@ -66,7 +66,7 @@ type GraphNodeAttachDependencies interface {
 type GraphNodeReferenceOutside interface {
 	// ReferenceOutside returns a path in which any references from this node
 	// are resolved.
-	ReferenceOutside() (selfPath, referencePath addrs.ModuleInstance)
+	ReferenceOutside() (selfPath, referencePath addrs.Module)
 }
 
 // ReferenceTransformer is a GraphTransformer that connects all the
@@ -384,7 +384,7 @@ func (m *ReferenceMap) vertexReferenceablePath(v dag.Vertex) addrs.ModuleInstanc
 		// Vertex is referenced from a different module than where it was
 		// declared.
 		path, _ := outside.ReferenceOutside()
-		return path
+		return path.UnkeyedInstanceShim()
 	}
 
 	// Vertex is referenced from the same module as where it was declared.
@@ -403,12 +403,11 @@ func vertexReferencePath(referrer dag.Vertex) addrs.ModuleInstance {
 		panic(fmt.Errorf("vertexReferencePath on vertex type %T which doesn't implement GraphNodeSubPath", sp))
 	}
 
-	var path addrs.ModuleInstance
 	if outside, ok := referrer.(GraphNodeReferenceOutside); ok {
 		// Vertex makes references to objects in a different module than where
 		// it was declared.
-		_, path = outside.ReferenceOutside()
-		return path
+		_, path := outside.ReferenceOutside()
+		return path.UnkeyedInstanceShim()
 	}
 
 	// Vertex makes references to objects in the same module as where it

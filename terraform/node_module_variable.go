@@ -110,15 +110,15 @@ func (n *NodeApplyableModuleVariable) RemoveIfNotTargeted() bool {
 }
 
 // GraphNodeReferenceOutside implementation
-func (n *NodeApplyableModuleVariable) ReferenceOutside() (selfPath, referencePath addrs.ModuleInstance) {
+func (n *NodeApplyableModuleVariable) ReferenceOutside() (selfPath, referencePath addrs.Module) {
 
 	// Module input variables have their value expressions defined in the
 	// context of their calling (parent) module, and so references from
 	// a node of this type should be resolved in the parent module instance.
-	referencePath = n.Addr.Module.Parent()
+	referencePath = n.Addr.Module.Parent().Module()
 
 	// Input variables are _referenced_ from their own module, though.
-	selfPath = n.Addr.Module
+	selfPath = n.Addr.Module.Module()
 
 	return // uses named return values
 }
