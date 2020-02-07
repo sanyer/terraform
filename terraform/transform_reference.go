@@ -269,12 +269,6 @@ type ReferenceMap struct {
 	// A particular reference key might actually identify multiple vertices,
 	// e.g. in situations where one object is contained inside another.
 	vertices map[string][]dag.Vertex
-
-	// edges is a map whose keys are a subset of the internal reference keys
-	// from "vertices", and whose values are the nodes that refer to each
-	// key. The values in this map are the referrers, while values in
-	// "verticies" are the referents. The keys in both cases are referents.
-	edges map[string][]dag.Vertex
 }
 
 // References returns the set of vertices that the given vertex refers to,
@@ -308,7 +302,6 @@ func (m *ReferenceMap) References(v dag.Vertex) ([]dag.Vertex, []addrs.Reference
 			}
 			key = m.referenceMapKey(v, subject)
 		}
-
 		vertices := m.vertices[key]
 		for _, rv := range vertices {
 			// don't include self-references
@@ -323,44 +316,6 @@ func (m *ReferenceMap) References(v dag.Vertex) ([]dag.Vertex, []addrs.Reference
 	}
 
 	return matches, missing
-}
-
-// Referrers returns the set of vertices that refer to the given vertex.
-func (m *ReferenceMap) Referrers(v dag.Vertex) []dag.Vertex {
-	rn, ok := v.(GraphNodeReferenceable)
-	if !ok {
-		return nil
-	}
-	sp, ok := v.(GraphNodeSubPath)
-	if !ok {
-		return nil
-	}
-
-	var matches []dag.Vertex
-	for _, addr := range rn.ReferenceableAddrs() {
-		key := m.mapKey(sp.Path(), addr)
-		referrers, ok := m.edges[key]
-		if !ok {
-			continue
-		}
-
-		// If the referrer set includes our own given vertex then we skip,
-		// since we don't want to return self-references.
-		selfRef := false
-		for _, p := range referrers {
-			if p == v {
-				selfRef = true
-				break
-			}
-		}
-		if selfRef {
-			continue
-		}
-
-		matches = append(matches, referrers...)
-	}
-
-	return matches
 }
 
 func (m *ReferenceMap) mapKey(path addrs.ModuleInstance, addr addrs.Referenceable) string {
@@ -472,34 +427,7 @@ func NewReferenceMap(vs []dag.Vertex) *ReferenceMap {
 		}
 	}
 
-	// Build the lookup table for referenced by
-	edges := make(map[string][]dag.Vertex)
-	for _, v := range vs {
-		_, ok := v.(GraphNodeSubPath)
-		if !ok {
-			// Only nodes with paths can participate in a reference map.
-			continue
-		}
-
-		rn, ok := v.(GraphNodeReferencer)
-		if !ok {
-			// We're only looking for referenceable nodes
-			continue
-		}
-
-		// Go through and cache them
-		for _, ref := range rn.References() {
-			if ref.Subject == nil {
-				// Should never happen
-				panic(fmt.Sprintf("%T.References returned reference with nil subject", rn))
-			}
-			key := m.referenceMapKey(v, ref.Subject)
-			edges[key] = append(edges[key], v)
-		}
-	}
-
 	m.vertices = vertices
-	m.edges = edges
 	return &m
 }
 
