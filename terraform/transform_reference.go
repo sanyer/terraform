@@ -80,7 +80,7 @@ func (t *ReferenceTransformer) Transform(g *Graph) error {
 
 	// Find the things that reference things and connect them
 	for _, v := range vs {
-		parents, _ := m.References(v)
+		parents := m.References(v)
 		parentsDbg := make([]string, len(parents))
 		for i, v := range parents {
 			parentsDbg[i] = dag.VertexName(v)
@@ -273,17 +273,16 @@ type ReferenceMap struct {
 
 // References returns the set of vertices that the given vertex refers to,
 // and any referenced addresses that do not have corresponding vertices.
-func (m *ReferenceMap) References(v dag.Vertex) ([]dag.Vertex, []addrs.Referenceable) {
+func (m *ReferenceMap) References(v dag.Vertex) []dag.Vertex {
 	rn, ok := v.(GraphNodeReferencer)
 	if !ok {
-		return nil, nil
+		return nil
 	}
 	if _, ok := v.(GraphNodeSubPath); !ok {
-		return nil, nil
+		return nil
 	}
 
 	var matches []dag.Vertex
-	var missing []addrs.Referenceable
 
 	for _, ref := range rn.References() {
 		subject := ref.Subject
@@ -310,12 +309,9 @@ func (m *ReferenceMap) References(v dag.Vertex) ([]dag.Vertex, []addrs.Reference
 			}
 			matches = append(matches, rv)
 		}
-		if len(vertices) == 0 {
-			missing = append(missing, ref.Subject)
-		}
 	}
 
-	return matches, missing
+	return matches
 }
 
 func (m *ReferenceMap) mapKey(path addrs.ModuleInstance, addr addrs.Referenceable) string {

@@ -113,7 +113,7 @@ func TestReferenceMapReferences(t *testing.T) {
 	for tn, tc := range cases {
 		t.Run(tn, func(t *testing.T) {
 			rm := NewReferenceMap(tc.Nodes)
-			result, _ := rm.References(tc.Check)
+			result := rm.References(tc.Check)
 
 			var resultStr []string
 			for _, v := range result {
