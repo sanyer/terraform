@@ -58,10 +58,20 @@ func (n *NodePlannableOutput) ReferenceableAddrs() []addrs.Referenceable {
 		return nil
 	}
 
-	// Otherwise, we can reference the output via the
-	// module call
+	// the output is referenced through the module call, and via the
+	// module itself.
 	_, call := n.Module.Call()
-	return []addrs.Referenceable{call}
+
+	// FIXME: make something like ModuleCallOutput for this type of reference
+	// that doesn't need an instance shim
+	callOutput := addrs.ModuleCallOutput{
+		Call: call.Instance(addrs.NoKey),
+		Name: n.Addr.Name,
+	}
+
+	// Otherwise, we can reference the output via the
+	// module call itself
+	return []addrs.Referenceable{call, callOutput}
 }
 
 // GraphNodeReferenceOutside implementation

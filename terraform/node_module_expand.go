@@ -14,6 +14,7 @@ import (
 // configured.
 type nodeExpandModule struct {
 	CallerAddr addrs.ModuleInstance
+	Addr       addrs.Module
 	Call       addrs.ModuleCall
 	Config     *configs.Module
 	ModuleCall *configs.ModuleCall
