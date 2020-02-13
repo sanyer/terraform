@@ -40,6 +40,8 @@ less common or more advanced commands. If you're just getting
 started with Terraform, stick with the common commands. For the
 other commands, please read the help and docs before usage.
 
+NEW!
+
 Common commands:
 %s
 All other commands:
