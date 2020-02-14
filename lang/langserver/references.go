@@ -1,6 +1,8 @@
 package langserver
 
 import (
+	"log"
+
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/terraform/addrs"
 	"github.com/hashicorp/terraform/configs"
@@ -14,16 +16,19 @@ func refAtPos(pos hcl.Pos, hclFile *hcl.File, cfgFile *configs.File) *addrs.Refe
 
 	block := hclFile.OutermostBlockAtPos(pos)
 	if block == nil {
+		log.Printf("[DEBUG] Block not found at pos %#v", pos)
 		return nil // not in a block at all
 	}
 
 	if block.DefRange.ContainsPos(pos) {
+		log.Printf("[DEBUG] Block definition contains pos %#v", pos)
 		// We're inside a block header, so we might be able to synthesize
 		// a ref for the object being declared by it.
 		return refForBlock(block)
 	}
 
-	return nil
+	log.Printf("[DEBUG] At last, finding reference for block: %#v", block)
+	return refForBlock(block)
 }
 
 func refForBlock(block *hcl.Block) *addrs.Reference {
@@ -45,6 +50,38 @@ func refForBlock(block *hcl.Block) *addrs.Reference {
 				Type: labels[0],
 				Name: labels[1],
 			},
+			SourceRange: rng,
+		}
+
+	case "provider":
+		if len(labels) != 1 {
+			return nil // invalid labels
+		}
+		provider := addrs.NewLegacyProvider(labels[0])
+
+		// TODO: new-style provider
+
+		findAliasInBody := func(body hcl.Body) string {
+			attrs, diags := body.JustAttributes()
+			if diags.HasErrors() {
+				return ""
+			}
+
+			v, ok := attrs["alias"]
+			if !ok {
+				return ""
+			}
+
+			val, diags := v.Expr.Value(nil)
+			if diags.HasErrors() {
+				return ""
+			}
+			return val.AsString()
+		}
+
+		provider.Alias = findAliasInBody(block.Body)
+		return &addrs.Reference{
+			Subject:     provider,
 			SourceRange: rng,
 		}
 

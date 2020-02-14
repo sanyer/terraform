@@ -68,6 +68,27 @@ func (ls sourceLines) posLSPToHCL(in lsp.Position) hcl.Pos {
 	return l.posForLSPColumn(in.Character)
 }
 
+// byteOffsetToHCL converts a byte offset within a file into the equivalent
+// position in HCL's representation.
+func (ls sourceLines) byteOffsetToHCL(byte int) hcl.Pos {
+	if len(ls) == 0 {
+		return hcl.Pos{Line: 1, Column: 1, Byte: 0}
+	}
+
+	for i, line := range ls {
+		if line.rng.ContainsOffset(byte) {
+			remainingBytes := byte - line.rng.Start.Byte
+
+			// TODO: This is *probably* not accurate
+			column := remainingBytes
+
+			return hcl.Pos{Line: i + 1, Column: column, Byte: byte}
+		}
+	}
+
+	return hcl.Pos{Line: 1, Column: 1, Byte: 0}
+}
+
 // posHCLToLSP converts a position in HCL's representation into the equivalent
 // position in the LSP's representation. If the given position is not within
 // the content then the result is undefined. The result is also undefined
